@@ -1,0 +1,11 @@
+{
+  "name": "natoursapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "app.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

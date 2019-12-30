@@ -1,29 +1,24 @@
-let fs = require('fs')
 let express = require('express')
+let morgan = require('morgan')
 let app = express()
 let port = 4200
+let tourRouter = require('./Routes/tourRoutes')
+let userRouter = require('./Routes/userRoutes')
+
+app.use(morgan('dev'))
 app.use(express.json())
-
-let tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`))
-
-app.get('/api/v1/tours', (req, res) => {
-res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: { tours }
-})
+app.use((req, res, next) => {
+    req.requestTime = new Date().toISOString()
+    next()
 })
 
-app.post('/api/v1/tours', (req, res) => {
-let newID = tours[tours.length - 1].id + 1
-let newTour = Object.assign({id: newID}, req.body)
-tours.push(newTour)
-fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), err => {
-    res.status(201).json({
-        status: 'success',
-        data: { tour: newTour }
-    })
-})
-})
+app.use('/api/v1/tours', tourRouter)
+app.use('/api/v1/users', userRouter)
+
+// app.get('/api/v1/tours', getAllTours)
+// app.post('/api/v1/tours', createTours)
+// app.get('/api/v1/tours/:id', findTourByID)
+// app.patch('/api/v1/tours/:id', updateTour)
+// app.delete('/api/v1/tours/:id', deleteTour)
 
 app.listen(port, () => console.log('app running @' + port))

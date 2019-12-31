@@ -1,68 +1,103 @@
-let fs = require('fs')
-let tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`))
+let Tour = require('../models/tourModel')
 
-exports.checkID = (req, res, next, val) => {
-    console.log(`tour id is ${req.params.id}`)
-    let id = req.params.id * 1
-    if (id > tours.length) {
-        return res.status(404).json({
-            status: "fail",
-            message: "invalid id"
+exports.getAllTours = async (req, res) => {
+    try {
+        // build the query
+        // filtering
+        let queryObj = { ...req.query }
+        let exlcude = ['page', 'sort', 'limit', 'fields']
+        exlcude.forEach(field => delete queryObj[field])
+        // console.log(req.query, queryObj)
+        // advanced filtering
+        // console.log(queryObj)
+        let queryStr = JSON.stringify(queryObj)
+        queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
+        // console.log(JSON.parse(queryStr))
+        let query = Tour.find(JSON.parse(queryStr)) 
+        // execute the query
+        let allTours = await query
+        res.status(200).json({
+            status: 'success',
+            results: allTours.length,
+            data: allTours
+        })
+    } catch (e) {
+        res.status(400).json({
+            status: 'failed',
+            message: e
         })
     }
-    next()
 }
 
-exports.checkBody = (req, res, next) => {
-    if(!req.body.name || !req.body.price) {
-    return res.status(400).json({ msg : 'invalid thing to do '})
-}
-next()
-}
-
-exports.getAllTours = (req, res) => {
-    res.status(200).json({
-        status: 'success',
-        requestedAt: req.requestTime,
-        results: tours.length,
-        data: { tours }
-    })
-}
-
-exports.createTours = (req, res) => {
-    let newID = tours[tours.length - 1].id + 1
-    let newTour = Object.assign({ id: newID }, req.body)
-    tours.push(newTour)
-    fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), err => {
+exports.createTours = async (req, res) => {
+    try {
+        // let newTour = new Tour({})
+        // newTour.save()
+        let newTour = await Tour.create(req.body)
         res.status(201).json({
             status: 'success',
-            data: { tour: newTour }
+            data: {
+                tour: newTour
+            }
         })
-    })
+    }
+    catch (err) {
+        res.status(400).json({
+            status: 'failed',
+            message: err
+        })
+    }
+
+
 }
 
-exports.findTourByID = (req, res) => {
-    let id = req.params.id * 1
-    let tour = tours.find(el => el.id === id)
-    res.status(200).json({
-        status: 'success',
-        data: { tour }
-    })
+exports.findTourByID = async (req, res) => {
+    try {
+        // Tour.findOne({_id: req.params.id})
+        let tour = await Tour.findById(req.params.id)
+        res.status(200).json({
+            status: 'success!',
+            data: { tour }
+        })
+    } catch (e) {
+        res.status(400).json({
+            status: 'failed',
+            message: e
+        })
+
+    }
 }
 
-exports.updateTour = (req, res) => {
-    res.status(200).json({
-        status: 'success!',
-        data: {
-            tour: 'UPDATED TOUR'
-        }
-    })
+exports.updateTour = async (req, res) => {
+    try {
+        let updated = await Tour.findByIdAndUpdate(req.params.id, req.body,
+            { new: true }, { runValidators: true })
+        res.status(200).json({
+            status: 'success!',
+            data: {
+                tour: updated
+            }
+        })
+    } catch (e) {
+        res.status(400).json({
+            status: 'failed',
+            message: e
+        })
+    }
 }
 
-exports.deleteTour = (req, res) => {
-    res.status(204).json({
-        status: 'success!',
-        data: null
-    })
+exports.deleteTour = async (req, res) => {
+    try {
+        await Tour.findByIdAndDelete(req.params.id)
+        res.status(204).json({
+            status: 'success!',
+            data: null
+        })
+    } catch (e) {
+        res.status(400).json({
+            status: 'failed',
+            message: e
+        })
+    }
 }
 

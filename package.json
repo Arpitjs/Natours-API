@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "app.js"
+    "start:dev": "server.js",
+    "start:prod": " SET NODE_ENV=production & nodemon server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
+    "mongoose": "^5.8.3",
     "morgan": "^1.9.1"
   }
 }

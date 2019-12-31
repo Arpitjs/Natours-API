@@ -1,47 +1,16 @@
 let express = require('express')
-let app = express()
 let userRouter = express.Router()
-
-let getAllUsers = (req, res) => {
-    res.status(500).json({
-        status: 'err',
-        msg: 'test'
-    })
-}
-let findUserByID = (req, res) => {
-    res.status(500).json({
-        status: 'err',
-        msg: 'test'
-    })
-}
-let createUser = (req, res) => {
-    res.status(500).json({
-        status: 'err',
-        msg: 'test'
-    })
-}
-let updateUser = (req, res) => {
-    res.status(500).json({
-        status: 'err',
-        msg: 'test'
-    })
-}
-let deleteUser = (req, res) => {
-    res.status(500).json({
-        status: 'err',
-        msg: 'test'
-    })
-}
+let userController = require('../controllers/userController')
 
 userRouter
     .route('/')
-    .get(getAllUsers)
-    .post(createUser)
+    .get(userController.getAllUsers)
+    .post(userController.createUser)
 
 userRouter.
     route('/:id')
-    .get(findUserByID)
-    .patch(updateUser)
-    .delete(deleteUser)
+    .get(userController.findUserByID)
+    .patch(userController.updateUser)
+    .delete(userController.deleteUser)
 
 module.exports = userRouter

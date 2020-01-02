@@ -1,5 +1,7 @@
 let Tour = require('../models/tourModel')
 let APIFeatures = require('../utils/apiFeatures')
+let catchAsync = require('../utils/catchAsync')
+let AppError = require('../utils/appError')
 
 exports.aliasTopTours = (req, res, next) => {
     req.query.limit = '5'
@@ -8,97 +10,63 @@ exports.aliasTopTours = (req, res, next) => {
     next()
 }
 
-exports.getAllTours = async (req, res) => {
-    try {
-        let features = new APIFeatures(Tour.find(), req.query)
-            .filter().sort().limit().pagination()
-        let allTours = await features.query
-        res.status(200).json({
-            status: 'success',
-            results: allTours.length,
-            data: allTours
-        })
-    } catch (e) {
-        res.status(400).json({
-            status: 'failed',
-            message: e
-        })
+exports.createTours = catchAsync(async (req, res, next) => {
+    let newTour = await Tour.create(req.body)
+    res.status(201).json({
+        status: 'success',
+        data: {
+            tour: newTour
+        }
+    })
+})
+
+exports.getAllTours = catchAsync(async (req, res, next) => {
+    let features = new APIFeatures(Tour.find(), req.query)
+        .filter().sort().limit().pagination()
+    let allTours = await features.query
+    res.status(200).json({
+        status: 'success',
+        results: allTours.length,
+        data: allTours
+    })
+
+})
+
+exports.findTourByID = catchAsync(async (req, res, next) => {
+    // Tour.findOne({_id: req.params.id})
+    let tour = await Tour.findById(req.params.id)
+    if(!tour) {
+       return next(new AppError('No tour found with that ID', 404))
     }
-}
+    res.status(200).json({
+        status: 'success!',
+        data: { tour }
+    })
+})
 
-exports.createTours = async (req, res) => {
-    try {
-        // let newTour = new Tour({})
-        // newTour.save()
-        let newTour = await Tour.create(req.body)
-        res.status(201).json({
-            status: 'success',
-            data: {
-                tour: newTour
-            }
-        })
-    }
-    catch (err) {
-        res.status(400).json({
-            status: 'failed',
-            message: err
-        })
-    }
+exports.updateTour = catchAsync(async (req, res, next) => {
+    let tour = await Tour.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true } )
+    if(!tour) {
+        return next(new AppError('No tour found with that ID', 404))
+     }
+    res.status(200).json({
+        status: 'success!',
+        data:  { tour }
+    })
+})
 
-
-}
-
-exports.findTourByID = async (req, res) => {
-    try {
-        // Tour.findOne({_id: req.params.id})
-        let tour = await Tour.findById(req.params.id)
-        res.status(200).json({
-            status: 'success!',
-            data: { tour }
-        })
-    } catch (e) {
-        res.status(400).json({
-            status: 'failed',
-            message: e
-        })
-
-    }
-}
-
-exports.updateTour = async (req, res) => {
-    try {
-        let updated = await Tour.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
-        res.status(200).json({
-            status: 'success!',
-            data: {
-                tour: updated
-            }
-        })
-    } catch (e) {
-        res.status(400).json({
-            status: 'failed',
-            message: e
-        })
-    }
-}
-
-exports.deleteTour = async (req, res) => {
-    try {
-        await Tour.findByIdAndDelete(req.params.id)
+exports.deleteTour = catchAsync(async (req, res, next) => {
+       let tour =  await Tour.findByIdAndDelete(req.params.id)
+        if(!tour) {
+            return next(new AppError('No tour found with that ID', 404))
+         }
         res.status(204).json({
             status: 'success!',
             data: null
         })
-    } catch (e) {
-        res.status(400).json({
-            status: 'failed',
-            message: e
         })
-    }
-}
 
-exports.getTourStats = async (req, res) => {
-    try {
+exports.getTourStats = catchAsync(async (req, res, next) => {
         let stats = await Tour.aggregate([
             {
                 $match: { ratingsAverage: { $gte: 4.5 } }
@@ -116,25 +84,18 @@ exports.getTourStats = async (req, res) => {
             }, {
                 $sort: { avgPrice: 1 }
             },
-            //     {
-            //         $match: {_id: { $ne: 'easy'} }
-            //     }
+            // {
+            //     $match: {_id: { $ne: 'easy'} }
+            // }
         ])
 
         res.status(200).json({
             status: 'success!',
             data: { stats }
         })
-    } catch (e) {
-        res.status(400).json({
-            status: 'failed',
-            message: e
         })
-    }
-}
 
-exports.getMonthlyPlan = async (req, res) => {
-    try {
+exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
         let year = req.params.year * 1
         let plan = await Tour.aggregate([
             {
@@ -149,32 +110,24 @@ exports.getMonthlyPlan = async (req, res) => {
                 }
             },
             {
-            $group: {
-                _id: { $month: '$startDates'},
-                numTourStarts: { $sum: 1},
-                tours: { $push: '$name' }
+                $group: {
+                    _id: { $month: '$startDates' },
+                    numTourStarts: { $sum: 1 },
+                    tours: { $push: '$name' }
+                }
+            }, {
+                $addFields: { month: '$_id' }
+            }, {
+                $project: { _id: 0 }
+            }, {
+                $sort: { numTourStarts: -1 }
+            }, {
+                $limit: 12
             }
-        }, {
-            $addFields: { month: '$_id' }
-        }, {
-            $project: {
-                _id: 0
-            }
-        }, {
-            $sort: { numTourStarts: -1 }  
-        }, {
-            $limit: 12
-        }
         ])
         res.status(200).json({
             status: 'success!',
             results: plan.length,
             data: { plan }
         })
-    } catch (e) {
-        res.status(400).json({
-            status: 'failed',
-            message: e
-        })
-    }
-}
+})

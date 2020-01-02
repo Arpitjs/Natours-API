@@ -1,11 +1,16 @@
 let mongoose = require('mongoose')
+let slugify = require('slugify')
+
 let tourSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'A tour must have a name, man.'],
         unique: true,
-        trim: true
+        trim: true,
+        maxlength: [40, 'A tour name must have less or equal than 40 characters.'],
+        minlength: [10, 'A tour name must have more than 10 characters.'],
     },
+    slug: String,
     duration: {
         type: Number,
         required: [true, 'A tour must have duration, man.']
@@ -16,11 +21,17 @@ let tourSchema = new mongoose.Schema({
     },
     difficulty: {
         type: String,
-        required: [true, 'A tour must have difficulty, man.']
+        required: [true, 'A tour must have difficulty, man.'],
+        enum: {
+            values: ['easy', 'medium', 'difficult'],
+            message: 'only pick those mentioned.'
+        }
     },
     ratingsAverage: {
         type: Number,
-        default: 3
+        default: 3,
+        min: [1, 'Rating must be above 1.0'],
+        max: [5, 'Rating must be below 5.0']
     },
     ratingsQuantity: {
         type: Number,
@@ -28,8 +39,18 @@ let tourSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        required: [true, 'A tour must have a price, man.']
-    }, priceDiscount: Number,
+        required: [true, 'Discount price ({VALUE}) should be below actual price.']
+    },
+    priceDiscount: {
+        type: Number,
+        validate: { 
+            validator: function (val) {
+        // here this only points to current doc on new creation.
+            return val < this.price
+        },
+        message: 'Discount price is unacceptable.'
+    }
+    },
     summary: {
         type: String,
         trim: true,
@@ -49,9 +70,46 @@ let tourSchema = new mongoose.Schema({
         default: Date.now(),
         select: false
     },
-    startDates: [Date]
+    startDates: [Date],
+    secretTour: {
+        type: Boolean,
+        default: false
+    }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+})
+
+tourSchema.virtual('durationWeeks').get(function () {
+    return this.duration / 7
+})
+
+// document middlewares
+//runs before save() and create()
+tourSchema.pre('save', function (next) {
+    this.slug = slugify(this.name, { lower: true })
+    next()
+})
+
+// query middleware
+tourSchema.pre(/^find/, function (next) {
+    this.find({ secretTour: { $ne: true } })
+    this.start = Date.now()
+    next()
+})
+
+tourSchema.post(/^find/, function (docs, next) {
+    console.log(`query took ${Date.now() - this.start} ms.`)
+    next()
+})
+
+// aggregation middleware
+tourSchema.pre('aggregate', function (next) {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
+    // console.log(this.pipeline())
+    next()
 })
 
 let Tour = mongoose.model('Tour', tourSchema)
 
-module.exports = Tour
+module.exports = Tour 

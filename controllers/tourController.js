@@ -45,6 +45,7 @@ exports.findTourByID = catchAsync(async (req, res, next) => {
 })
 
 exports.updateTour = catchAsync(async (req, res, next) => {
+    // NOTE: mongoose validators do not run again for findByIdAndUpdate
     let tour = await Tour.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true } )
     if(!tour) {
         return next(new AppError('No tour found with that ID', 404))

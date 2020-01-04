@@ -1,3 +1,4 @@
+let crypto = require('crypto')
 let mongoose = require('mongoose')
 let validator = require('validator')
 let bcrypt = require('bcryptjs')
@@ -46,6 +47,8 @@ let userSchema = new mongoose.Schema({
         type: String
     },
     passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date
 })
 
 userSchema.pre('save', async function (next) {
@@ -55,17 +58,34 @@ userSchema.pre('save', async function (next) {
     next()
 })
 
-userSchema.methods.correctPassword = async function(p1, p2) {
-return await bcrypt.compare(p1, p2)
+userSchema.pre('save', function (next) {
+    if (this.isModified('password') || this.isNew) return next()
+    this.passwordChangedAt = Date.now() - 1000
+    next()
+})
+
+userSchema.methods.correctPassword = async function (p1, p2) {
+    return await bcrypt.compare(p1, p2)
 }
 
-userSchema.methods.changedPasswordAfter = function(jwtTimestamp) {
-    if(this.passwordChangedAt) {
+userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
+    if (this.passwordChangedAt) {
         let changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10)
         console.log(changedTimestamp, jwtTimestamp)
         return jwtTimestamp < changedTimestamp
     }
     return false
+}
+
+userSchema.methods.createPasswordResetToken = function () {
+    let resetToken = crypto.randomBytes(32).toString('hex') //the one thats being sent through email.
+    this.passwordResetToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex') //hashed one //stored in db
+    console.log(this.passwordResetToken)
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000
+    return resetToken
 }
 
 let userModel = mongoose.model('User', userSchema)

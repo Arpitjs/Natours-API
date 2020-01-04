@@ -9,7 +9,7 @@ let userSchema = new mongoose.Schema({
         required: true,
         trim: true,
         unique: true,
-        maxlength: ['10', 'A user cannot have more than 10 characters']
+        maxlength: ['20', 'A user cannot have more than 20 characters']
     },
     email: {
         type: String,
@@ -48,7 +48,12 @@ let userSchema = new mongoose.Schema({
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
-    passwordResetExpires: Date
+    passwordResetExpires: Date,
+    active: {
+        type: Boolean,
+        default: true,
+        select: false
+    }
 })
 
 userSchema.pre('save', async function (next) {
@@ -64,6 +69,13 @@ userSchema.pre('save', function (next) {
     next()
 })
 
+userSchema.pre('/^find/', function (next) {
+    // this points to current query.
+    // dont know why this query is not running. hmm.
+    this.find({ active: { $ne: false } } )
+    next()
+})
+
 userSchema.methods.correctPassword = async function (p1, p2) {
     return await bcrypt.compare(p1, p2)
 }
@@ -71,7 +83,6 @@ userSchema.methods.correctPassword = async function (p1, p2) {
 userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
     if (this.passwordChangedAt) {
         let changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10)
-        console.log(changedTimestamp, jwtTimestamp)
         return jwtTimestamp < changedTimestamp
     }
     return false
@@ -83,7 +94,6 @@ userSchema.methods.createPasswordResetToken = function () {
         .createHash('sha256')
         .update(resetToken)
         .digest('hex') //hashed one //stored in db
-    console.log(this.passwordResetToken)
     this.passwordResetExpires = Date.now() + 10 * 60 * 1000
     return resetToken
 }

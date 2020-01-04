@@ -8,15 +8,27 @@ let sendMail = require('../utils/email')
 
 let signToken = id => jwt.sign({ id }, process.env.JWT_SECRET)
 
-exports.signUp = catchAsync(async (req, res, next) => {
-    let newUser = await User.create(req.body)
-
-    let token = signToken(newUser._id)
-    res.status(201).json({
+let sendToken = (user, statusCode, res) => {
+    let token = signToken(user._id)
+    let cookieOptions = {
+            expires: new Date(
+                Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 21 * 60 * 60 * 1000),
+                httpOnly: true
+    }
+    if(process.env.NODE_ENV === 'production') cookieOptions.secure = true
+    res.cookie('jwt', token, cookieOptions)
+    user.password = undefined
+    res.status(statusCode).json({
         status: 'success',
         token,
-        data: { newUser }
+        data: { user }
     })
+}
+
+exports.signUp = catchAsync(async (req, res, next) => {
+    let newUser = await User.create(req.body)
+    sendToken(newUser, 201, res)
+
 })
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -31,11 +43,7 @@ exports.login = catchAsync(async (req, res, next) => {
     let isMatch = await user.correctPassword(password, user.password)
     if (!isMatch) return next(new AppError('invalid email or password', 401))
 
-    let token = signToken(user._id)
-    res.status(200).json({
-        status: 'success',
-        token
-    })
+    sendToken(user, 200, res)
 })
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -47,7 +55,6 @@ exports.protect = catchAsync(async (req, res, next) => {
         return next(new AppError('you are not logged in, token not provided.', 401))
     }
     let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
-    console.log(decoded)
     let user = await User.findById(decoded.id)
     if (!user) return next(new AppError('the user no longer exist', 401))
     if (user.changedPasswordAfter(decoded.iat)) {
@@ -113,12 +120,19 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     user.passwordResetToken = undefined
     user.passwordResetExpires = undefined
     await user.save()
-    // 3 update changedPasswordAt
-
+    // 3 update changedPasswordAt //done is usermodel as middleware
     // 4 log the user in, send jwt to client
-    let token = signToken(user._id)
-    res.status(200).json({
-        status: 'success',
-        token
-    })
+    sendToken(user, 200, res)
+})
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+    let user = await User.findById( req.user.id ).select('+password')
+    if (!user) return next(new AppError('invalid credentials', 400))
+    let check = await user.correctPassword(req.body.passwordCurrent, user.password)
+    if (!check) return next(new AppError('invalid password', 401))
+    user.password = req.body.password
+    user.confirmPassword = req.body.confirmPassword
+    await user.save()
+    sendToken(user, 200, res)
+    next()
 })

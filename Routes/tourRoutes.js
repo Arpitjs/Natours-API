@@ -1,6 +1,7 @@
 let express = require('express')
 let Router = express.Router()
 let tourController = require('../controllers/tourController')
+let authController = require('../controllers/authController')
 
 // Router.param('id', tourController.checkID)
 
@@ -15,13 +16,14 @@ Router.route('/monthly-plan/:year')
 
 Router
     .route('/')
-    .get(tourController.getAllTours)
+    .get(authController.protect, tourController.getAllTours)
     .post(tourController.createTours)
 
 Router
     .route('/:id')
     .get(tourController.findTourByID)
     .patch(tourController.updateTour)
-    .delete(tourController.deleteTour)
+    .delete(authController.protect, authController.restrictTo('admin', 'lead-guide'),
+        tourController.deleteTour)
 
     module.exports = Router

@@ -89,7 +89,7 @@ userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
 }
 
 userSchema.methods.createPasswordResetToken = function () {
-    let resetToken = crypto.randomBytes(32).toString('hex') //the one thats being sent through email.
+    let resetToken = crypto.randomBytes(32).toString('hex') //the one thats being sent through email and on params.
     this.passwordResetToken = crypto
         .createHash('sha256')
         .update(resetToken)

@@ -1,11 +1,11 @@
 let mongoose = require('mongoose')
 let dotenv = require('dotenv')
 
-process.on('uncaughtException', err => {
-    console.log('unhandled exception, shutting down.')
-    console.log(err.name, err.message)
-    process.exit(1)
-})
+// process.on('uncaughtException', err => {
+//     console.log('unhandled exception, shutting down.')
+//     console.log(err.name, err.message)
+//     process.exit(1)
+// })
 
 dotenv.config({ path: './config.env' })
 let app = require('./app')
@@ -22,11 +22,11 @@ mongoose.connect(DB, {
 let port = process.env.PORT
 let server = app.listen(port, () => console.log('app running @ ' + port))
 
-process.on('unhandledRejection', err => {
-    console.log(err.name, err.message)
-    console.log('unhandled rejection, shutting down.')
-    server.close(() => {
-        process.exit(1)
-    })
-})
+// process.on('unhandledRejection', err => {
+//     console.log(err.name, err.message)
+//     console.log('unhandled rejection, shutting down.')
+//     server.close(() => {
+//         process.exit(1)
+//     })
+// })
 

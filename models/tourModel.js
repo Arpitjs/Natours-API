@@ -1,5 +1,6 @@
 let mongoose = require('mongoose')
 let slugify = require('slugify')
+// let User = require('./userModel')
 
 let tourSchema = new mongoose.Schema({
     name: {
@@ -74,7 +75,37 @@ let tourSchema = new mongoose.Schema({
     secretTour: {
         type: Boolean,
         default: false
-    }
+    },
+    startLocation: {
+        type: {
+            type: String,
+            default: 'Point',
+            enum: ['Point']
+        },
+        coordinates: [Number], 
+        address: String,
+        description: String
+    },
+    locations: [
+        //embedded documents
+        {
+            type: {
+                type: String,
+                default: 'Point',
+                enum: ['Point']
+            },
+            coordinates: [Number],
+            address: String,
+            description: String,
+            day: Number  
+        }
+    ],
+    guides: [
+       { 
+           type: mongoose.Schema.ObjectId,
+           ref: 'User'
+       }
+    ]
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
@@ -91,10 +122,25 @@ tourSchema.pre('save', function (next) {
     next()
 })
 
+// connecting users and tours using embedding method
+// tourSchema.pre('save', async function(next) {
+//     let guidePromises = this.guides.map(async id => await User.findById(id))
+//     this.guides = await Promise.all(guidePromises)
+//     next()
+// })
+
 // query middleware
 tourSchema.pre(/^find/, function (next) {
     this.find({ secretTour: { $ne: true } } )
     this.start = Date.now()
+    next()
+})
+
+tourSchema.pre(/^find/, function(next) {
+    this.populate({
+        path: 'guides',
+        select: '-__v -passwordChangedAt'
+    })
     next()
 })
 

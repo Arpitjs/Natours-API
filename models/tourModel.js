@@ -44,13 +44,13 @@ let tourSchema = new mongoose.Schema({
     },
     priceDiscount: {
         type: Number,
-        validate: { 
+        validate: {
             validator: function (val) {
-        // here this only points to current doc on new creation.
-            return val < this.price
-        },
-        message: 'Discount price is unacceptable.'
-    }
+                // here this only points to current doc on new creation.
+                return val < this.price
+            },
+            message: 'Discount price is unacceptable.'
+        }
     },
     summary: {
         type: String,
@@ -82,7 +82,7 @@ let tourSchema = new mongoose.Schema({
             default: 'Point',
             enum: ['Point']
         },
-        coordinates: [Number], 
+        coordinates: [Number],
         address: String,
         description: String
     },
@@ -97,28 +97,38 @@ let tourSchema = new mongoose.Schema({
             coordinates: [Number],
             address: String,
             description: String,
-            day: Number  
+            day: Number
         }
     ],
     guides: [
-       { 
-           type: mongoose.Schema.ObjectId,
-           ref: 'User'
-       }
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User'
+        }
     ]
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
 })
 
+tourSchema.index({ price: 1, ratingsAverage: -1 })
+tourSchema.index({ slug: 1 })
+
 tourSchema.virtual('durationWeeks').get(function () {
     return this.duration / 7
+})
+
+// virtual popluate
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'tour',
+    localField: '_id'
 })
 
 // document middlewares
 //runs before save() and create()
 tourSchema.pre('save', function (next) {
-    this.slug = slugify(this.name, { lower: true } )
+    this.slug = slugify(this.name, { lower: true })
     next()
 })
 
@@ -131,12 +141,12 @@ tourSchema.pre('save', function (next) {
 
 // query middleware
 tourSchema.pre(/^find/, function (next) {
-    this.find({ secretTour: { $ne: true } } )
+    this.find({ secretTour: { $ne: true } })
     this.start = Date.now()
     next()
 })
 
-tourSchema.pre(/^find/, function(next) {
+tourSchema.pre(/^find/, function (next) {
     this.populate({
         path: 'guides',
         select: '-__v -passwordChangedAt'
@@ -151,7 +161,7 @@ tourSchema.post(/^find/, function (docs, next) {
 
 // aggregation middleware
 tourSchema.pre('aggregate', function (next) {
-    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } } )
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
     // console.log(this.pipeline())
     next()
 })

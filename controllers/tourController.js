@@ -1,7 +1,12 @@
 let Tour = require('../models/tourModel')
-let APIFeatures = require('../utils/apiFeatures')
 let catchAsync = require('../utils/catchAsync')
-let AppError = require('../utils/appError')
+let handlerFactory = require('./handlerFactory')
+
+exports.getAllTours = handlerFactory.getAll(Tour)
+exports.getTour = handlerFactory.getOne(Tour, { path: 'reviews' } )
+exports.createTour = handlerFactory.createOne(Tour)
+exports.updateTour = handlerFactory.updateOne(Tour)
+exports.deleteTour = handlerFactory.deleteOne(Tour)
 
 exports.aliasTopTours = (req, res, next) => {
     req.query.limit = '5'
@@ -9,63 +14,6 @@ exports.aliasTopTours = (req, res, next) => {
     req.query.fields = 'name,price,ratingsAverage,summary,difficulty'
     next()
 }
-
-exports.createTours = catchAsync(async (req, res, next) => {
-    let newTour = await Tour.create(req.body)
-    res.status(201).json({
-        status: 'success',
-        data: {
-            tour: newTour
-        }
-    })
-})
-
-exports.getAllTours = catchAsync(async (req, res, next) => {
-    let features = new APIFeatures(Tour.find(), req.query)
-        .filter().sort().limit().pagination()
-    let allTours = await features.query
-    res.status(200).json({
-        status: 'success',
-        results: allTours.length,
-        data: allTours
-    })
-
-})
-
-exports.findTourByID = catchAsync(async (req, res, next) => {
-    // Tour.findOne({_id: req.params.id})
-    let tour = await Tour.findById(req.params.id)
-    if(!tour) {
-       return next(new AppError('No tour found with that ID', 404))
-    }
-    res.status(200).json({
-        status: 'success!',
-        data: { tour }
-    })
-})
-
-exports.updateTour = catchAsync(async (req, res, next) => {
-    // NOTE: mongoose validators do not run again for findByIdAndUpdate
-    let tour = await Tour.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true } )
-    if(!tour) {
-        return next(new AppError('No tour found with that ID', 404))
-     }
-    res.status(200).json({
-        status: 'success!',
-        data:  { tour }
-    })
-})
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-       let tour =  await Tour.findByIdAndDelete(req.params.id)
-        if(!tour) {
-            return next(new AppError('No tour found with that ID', 404))
-         }
-        res.status(204).json({
-            status: 'success!',
-            data: null
-        })
-        })
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
         let stats = await Tour.aggregate([

@@ -8,12 +8,20 @@ let authController = require('../controllers/authController')
 Router.post('/signup',authController.signUp)
 Router.post('/login',authController.login)
 
+// password routes
 Router.post('/forgotPassword', authController.forgotPassword)
 Router.patch('/resetPassword/:token', authController.resetPassword)
-Router.patch('/updatePassword', authController.protect, authController.updatePassword)
-Router.patch('/updateMe', authController.protect, userController.updateMe)
-Router.delete('/deleteMe', authController.protect, userController.deleteMe)
 
+// works for all the routes below it
+Router.use(authController.protect)
+Router.patch('/updatePassword', authController.updatePassword)
+// me routes
+Router.patch('/updateMe', userController.updateMe)
+Router.delete('/deleteMe', userController.deleteMe)
+Router.get('/me', userController.getMe,
+userController.findUserByID)
+
+Router.use(authController.restrictTo('admin'))
 Router
     .route('/')
     .get(userController.getAllUsers)
@@ -21,5 +29,7 @@ Router
 Router.
     route('/:id')
     .get(userController.findUserByID)
+    .patch(userController.updateUser)
+    .delete(userController.deleteUser)
 
 module.exports = Router

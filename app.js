@@ -11,6 +11,7 @@ let AppError = require('./utils/appError')
 let globalErrorHandler = require('./controllers/errorController')
 let tourRouter = require('./Routes/tourRoutes')
 let userRouter = require('./Routes/userRoutes')
+let reviewRouter = require('./Routes/reviewRoute')
 
 // set security http headers
 app.use(helmet())
@@ -52,6 +53,7 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/tours', tourRouter)
 app.use('/api/v1/users', userRouter)
+app.use('/api/v1/reviews', reviewRouter)
 
 app.all('*', (req, res, next) => {
     next(new AppError(`cannot find ${req.originalUrl} on this server.`, 404))

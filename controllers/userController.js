@@ -1,7 +1,9 @@
 let User = require('../models/userModel')
 let catchAsync = require('../utils/catchAsync')
 let AppError = require('../utils/appError')
+let handlerFactory = require('./handlerFactory')
 
+// for only allowing particular fields to be updated by the user
 let filterObj = (obj, ...allowedFields) => {
     let newObj = {}
     Object.keys(obj).forEach(el => {
@@ -10,19 +12,9 @@ let filterObj = (obj, ...allowedFields) => {
     return newObj
 }
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-    let users = await User.find()
-    res.status(200).json({
-        status: 'success',
-        data: { users }
-    })
-})
-
-exports.findUserByID = (req, res) => {
-    res.status(500).json({
-        status: 'err',
-        msg: 'test'
-    })
+exports.getMe = (req, res, next) => {
+    req.params.id = req.user.id
+    next()
 }
 
 exports.updateMe = catchAsync(async (req, res, next) => {
@@ -50,3 +42,9 @@ exports.deleteMe = catchAsync(async(req, res, next) => {
         data: null
     })
 })
+
+exports.getAllUsers = handlerFactory.getAll(User)
+exports.findUserByID = handlerFactory.getOne(User)
+// only done by admin
+exports.updateUser = handlerFactory.updateOne(User)
+exports.deleteUser = handlerFactory.deleteOne(User)

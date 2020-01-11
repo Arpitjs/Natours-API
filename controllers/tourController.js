@@ -34,9 +34,6 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
         }, {
             $sort: { avgPrice: 1 }
         },
-        // {
-        //     $match: {_id: { $ne: 'easy'} }
-        // }
     ])
 
     res.status(200).json({
@@ -100,7 +97,6 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
         results: tours.length,
         data: { tours }
     })
-
 })
 
 exports.getDistances = catchAsync(async (req, res, next) => {

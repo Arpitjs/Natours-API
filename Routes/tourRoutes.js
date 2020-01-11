@@ -16,6 +16,11 @@ Router.route('/tour-stats')
 Router.route('/monthly-plan/:year')
     .get(authController.protect, authController.restrictTo('admin', 'lead-guide', 'guide'), tourController.getMonthlyPlan)
 
+Router.route('/tour-within/:distance/center/:latlng/unit/:unit')
+    .get(tourController.getToursWithin)
+
+Router.route('/distances/:latlng/unit/:unit')
+.get(tourController.getDistances)
 Router
     .route('/')
     .get(tourController.getAllTours)

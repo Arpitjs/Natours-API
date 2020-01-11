@@ -80,6 +80,7 @@ userSchema.methods.correctPassword = async function (p1, p2) {
     return await bcrypt.compare(p1, p2)
 }
 
+//methods are accessible to the instances. so this referes to instance 'user'.
 userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
     if (this.passwordChangedAt) {
         let changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10)

@@ -13,6 +13,7 @@ let globalErrorHandler = require('./controllers/errorController')
 let tourRouter = require('./Routes/tourRoutes')
 let userRouter = require('./Routes/userRoutes')
 let reviewRouter = require('./Routes/reviewRoute')
+let viewRoutes = require('./Routes/viewRoutes')
 
 // template engine
 app.engine('pug', require('pug').__express)
@@ -58,26 +59,7 @@ app.use((req, res, next) => {
     next()
 })
 
-//Template routes
-app.get('/', (req, res) => {
-    res.status(200).render('base', {
-        tour: 'The Forest Hiker',
-        user: 'arpit'
-    })
-})
-
-app.get('/overview', (req, res) => {
-    res.status(200).render('overview', {
-        title: 'All Tours'
-    })
-})
-
-app.get('/tour', (req, res) => {
-    res.status(200).render('tour', {
-        title: 'The Forest Hiker'
-    })
-})
-
+app.use('/', viewRoutes)
 // API Routes
 app.use('/api/v1/tours', tourRouter)
 app.use('/api/v1/users', userRouter)

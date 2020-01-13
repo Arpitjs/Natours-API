@@ -21,10 +21,11 @@ Router.route('/tour-within/:distance/center/:latlng/unit/:unit')
 
 Router.route('/distances/:latlng/unit/:unit')
 .get(tourController.getDistances)
+
 Router
     .route('/')
     .get(tourController.getAllTours)
-    .post(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.createTour)
+    .post(authController.protect, tourController.createTour)
 
 Router
     .route('/:id')

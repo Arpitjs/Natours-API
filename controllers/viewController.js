@@ -1,7 +1,5 @@
 let Tour = require('../models/tourModel')
 let catchAsync = require('../utils/catchAsync')
-let Review = require('../models/reviewModel')
-let User = require('../models/userModel')
 
 exports.getOverview = catchAsync(async(req, res, next) => {
     // 1 get all the tour data from BE
@@ -25,3 +23,9 @@ exports.getTour =  catchAsync(async(req, res, next) => {
        tour
 })
 })
+
+exports.login =(req, res) => {
+    res.status(200).render('login', {
+       title: 'Log into yer account.'
+    })
+}

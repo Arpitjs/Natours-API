@@ -50,6 +50,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     let token
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1]
+    } else if(req.cookies.jwt) {
+        token = req.cookies.jwt
     }
     if (!token) {
         return next(new AppError('you are not logged in, token not provided.', 401))
@@ -120,7 +122,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     user.passwordResetToken = undefined
     user.passwordResetExpires = undefined
     await user.save()
-    // 3 update changedPasswordAt //done is usermodel as middleware
+    // 3 update changedPasswordAt //done in usermodel as middleware
     // 4 log the user in, send jwt to client
     sendToken(user, 200, res)
 })
@@ -135,4 +137,23 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     await user.save()
     sendToken(user, 200, res)
     next()
+})
+
+// only for rendered pages, will have NO error
+exports.isLoggedIn = catchAsync(async(req, res, next) => {
+  if(req.cookies.jwt) {
+    //  verify token
+    let decoded = await promisify(jwt.verify)(
+        req.cookies.jwt, process.env.JWT_SECRET)
+    // check if user still exists
+    let user = await User.findById(decoded.id)
+    if (!user) return next()
+    // check if user changed pswd after token was issued
+    if (user.changedPasswordAfter(decoded.iat)) {
+        return next()
+    }
+    res.locals.user = user
+   return next()
+}
+next()
 })

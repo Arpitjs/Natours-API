@@ -6,12 +6,16 @@
   "scripts": {
     "start:dev": "server.js",
     "start:prod": "NODE_ENV=production & nodemon server.js",
-    "debug": "ndb server.js"
+    "debug": "ndb server.js",
+    "watch:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js",
+    "build:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express-mongo-sanitize": "^1.3.2",
     "express-rate-limit": "^5.0.0",
@@ -25,5 +29,6 @@
     "slugify": "^1.3.6",
     "validator": "^12.1.0",
     "xss-clean": "^0.1.1"
-  }
+  },
+  "devDependencies": {}
 }

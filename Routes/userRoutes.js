@@ -7,6 +7,7 @@ let authController = require('../controllers/authController')
 // doesnt fit rest arch. so separately.
 Router.post('/signup',authController.signUp)
 Router.post('/login',authController.login)
+Router.get('/logout', authController.logout)
 
 // password routes
 Router.post('/forgotPassword', authController.forgotPassword)

@@ -63,13 +63,14 @@ exports.protect = catchAsync(async (req, res, next) => {
     }
     if (!token) {
         return next(new AppError('you are not logged in, token not provided.', 401))
-    }
+    } 
     let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
     let user = await User.findById(decoded.id)
     if (!user) return next(new AppError('the user no longer exist', 401))
     if (user.changedPasswordAfter(decoded.iat)) {
         return next(new AppError('password was recently changed.', 401))
     }
+    res.locals.user = user
     req.user = user
     next()
 })
@@ -144,7 +145,6 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     user.confirmPassword = req.body.confirmPassword
     await user.save()
     sendToken(user, 200, res)
-    next()
 })
 
 // only for rendered pages, will have NO error

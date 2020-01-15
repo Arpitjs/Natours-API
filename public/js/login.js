@@ -26,11 +26,12 @@ let login = async (email, password) => {
         }
         console.log(res)
     }
-    catch (err) { showAlert('error', err.response.data.message) }
+    catch (err) { 
+        showAlert('error', err.response.data.message) }
 }
 
-if (document.querySelector('.form'))
-    document.querySelector('.form').addEventListener('submit', e => {
+if (document.querySelector('.form--login'))
+    document.querySelector('.form--login').addEventListener('submit', e => {
         e.preventDefault()
         let email = document.getElementById('email').value
         let password = document.getElementById('password').value

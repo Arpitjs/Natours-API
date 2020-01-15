@@ -31,9 +31,12 @@ let updateSettings = async (data, type) => {
 if (document.querySelector('.form-user-data')) {
     document.querySelector('.form-user-data').addEventListener('submit', e => {
         e.preventDefault()
-        let email = document.querySelector('#email').value
-        let name = document.querySelector('#name').value
-        updateSettings({ name, email }, 'data')
+        let form = new FormData()
+        form.append('name', document.querySelector('#name').value)
+        form.append('email', document.querySelector('#email').value)
+        form.append('photo', document.querySelector('#photo').files[0])
+        console.log(form)
+        updateSettings(form, 'data')
     })
 }
 

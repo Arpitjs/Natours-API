@@ -44,7 +44,8 @@ let userSchema = new mongoose.Schema({
         message: 'the passwords do not match.'
     },
     photo: {
-        type: String
+        type: String,
+        default: 'default.jpg'
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
@@ -72,7 +73,7 @@ userSchema.pre('save', function (next) {
 userSchema.pre('/^find/', function (next) {
     // this points to current query.
     // dont know why this query is not running. hmm.
-    this.find({ active: { $ne: false } } )
+    this.find({ active: { $ne: false } })
     next()
 })
 

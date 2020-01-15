@@ -4,6 +4,7 @@ let Router = express.Router()
 let userController = require('../controllers/userController')
 let authController = require('../controllers/authController')
 
+
 // doesnt fit rest arch. so separately.
 Router.post('/signup',authController.signUp)
 Router.post('/login',authController.login)
@@ -17,7 +18,7 @@ Router.patch('/resetPassword/:token', authController.resetPassword)
 Router.use(authController.protect)
 Router.patch('/updatePassword', authController.updatePassword)
 // me routes
-Router.patch('/updateMe', userController.updateMe)
+Router.patch('/updateMe', userController.uploadUserPhoto, userController.resizePhoto, userController.updateMe)
 Router.delete('/deleteMe', userController.deleteMe)
 Router.get('/me', userController.getMe,
 userController.findUserByID)

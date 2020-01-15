@@ -2,6 +2,53 @@ let Tour = require('../models/tourModel')
 let catchAsync = require('../utils/catchAsync')
 let handlerFactory = require('./handlerFactory')
 let AppError = require('../utils/appError')
+let multer = require('multer')
+let sharp = require('sharp')
+
+let multerStorage = multer.memoryStorage()
+
+let multerFilter = (req, file, cb) => {
+    if (file.mimetype.split('/')[0] == 'image') {
+        cb(null, true)
+    } else {
+        cb(new AppError('Not an image!', 400), false)
+    }
+}
+let upload = multer({
+    storage: multerStorage,
+    fileFilter: multerFilter
+})
+
+exports.uploadTourImages = upload.fields([
+    { name: 'imageCover', maxCount: 1 },
+    { name: 'images', maxCount: 3 }
+])
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+    if (!req.files.imageCover || !req.files.images) return next()
+    // 1 cover image
+    req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`
+    await sharp(req.files.imageCover[0].buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${req.body.imageCover}`)
+
+    // 2 other images 
+    req.body.images = []
+    await Promise.all(req.files.images.map(async (file, i) => {
+        let filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`
+        await sharp(file.buffer)
+            .resize(2000, 1333)
+            .toFormat('jpeg')
+            .jpeg({ quality: 90 })
+            .toFile(`public/img/tours/${filename}`)
+        req.body.images.push(filename)
+    })
+    )
+    console.log(req.body)
+    next()
+})
 
 exports.getAllTours = handlerFactory.getAll(Tour)
 exports.getTour = handlerFactory.getOne(Tour, { path: 'reviews' })
@@ -113,7 +160,7 @@ exports.getDistances = catchAsync(async (req, res, next) => {
                     type: 'Point',
                     coordinates: [lng * 1, lat * 1]
                 },
-                distanceField: 'distance', 
+                distanceField: 'distance',
                 distanceMultiplier: multiplier
             }
         },

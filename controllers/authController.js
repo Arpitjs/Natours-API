@@ -4,7 +4,7 @@ let User = require('../models/userModel')
 let catchAsync = require('../utils/catchAsync')
 let jwt = require('jsonwebtoken')
 let AppError = require('../utils/appError')
-let sendMail = require('../utils/email')
+let Email = require('../utils/email')
 
 let signToken = id => jwt.sign({ id }, process.env.JWT_SECRET)
 
@@ -27,8 +27,10 @@ let sendToken = (user, statusCode, res) => {
 
 exports.signUp = catchAsync(async (req, res, next) => {
     let newUser = await User.create(req.body)
+    let url = `${req.protocol}://${req.get('host')}/me`
+    console.log(url)
+    await new Email(newUser, url).sendWelcome()
     sendToken(newUser, 201, res)
-
 })
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -91,15 +93,10 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     let resetToken = user.createPasswordResetToken()
     await user.save({ validateBeforeSave: false })
     // providing entire url here. req.protocol is http or https.
-    let resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`
-    let message = `forgot your password? submit a patch request with your
-    new password to: ${resetURL}. if you did not forget yer password, ignore this.`
     try {
-        await sendMail({
-            email: user.email,
-            subject: 'your password reset token. valid for 10 mins',
-            message
-        })
+        let resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`
+        console.log(resetURL)
+       await new Email(user, resetURL).sendPasswordReset()
         res.status(200).json({
             status: 'success',
             message: 'token sent to the email!'

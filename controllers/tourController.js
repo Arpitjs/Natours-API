@@ -39,20 +39,21 @@ exports.resizeTourImages = catchAsync(async (req, res, next) => {
     await Promise.all(req.files.images.map(async (file, i) => {
         let filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`
         await sharp(file.buffer)
-            .resize(2000, 1333)
-            .toFormat('jpeg')
-            .jpeg({ quality: 90 })
-            .toFile(`public/img/tours/${filename}`)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`)
         req.body.images.push(filename)
     })
     )
     console.log(req.body)
-    next()
+    return next()
 })
 
 exports.getAllTours = handlerFactory.getAll(Tour)
 exports.getTour = handlerFactory.getOne(Tour, { path: 'reviews' })
 exports.createTour = handlerFactory.createOne(Tour)
+// update one le req.body ma j j auxa sablai update hanxa.
 exports.updateTour = handlerFactory.updateOne(Tour)
 exports.deleteTour = handlerFactory.deleteOne(Tour)
 

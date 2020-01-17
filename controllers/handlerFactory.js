@@ -17,6 +17,8 @@ exports.deleteOne = Model =>
 exports.updateOne = Model =>
     catchAsync(async (req, res, next) => {
         // NOTE: mongoose validators do not run again for findByIdAndUpdate
+        // sab middleware pass garesi yaha samma auda req.body ma tyo imageCover ra images ko nam hunxa 
+        // so aba yo tala ko query run vaera db ma save hunxa.
         let doc = await Model.findByIdAndUpdate(req.params.id, req.body, { runValidators: true, new: true })
         if (!doc) {
             return next(new AppError('No document found with that ID', 404))

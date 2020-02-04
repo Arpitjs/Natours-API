@@ -14,8 +14,8 @@ let showAlerts = (type, msg) => {
 // type is either password or data
 let updateSettings = async (data, type) => {
     try {
-        let url = type === 'password' ? 'http://127.0.0.1:4200/api/v1/users/updatePassword' :
-            'http://127.0.0.1:4200/api/v1/users/updateMe'
+        let url = type === 'password' ? 'http://localhost:4200/api/v1/users/updatePassword' :
+            'http://localhost:4200/api/v1/users/updateMe'
         let res = await axios({
             method: 'PATCH',
             url, data

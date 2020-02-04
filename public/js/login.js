@@ -16,15 +16,14 @@ let login = async (email, password) => {
     try {
         let res = await axios({
             method: 'POST',
-            url: 'http://127.0.0.1:4200/api/v1/users/login',
+            url: 'http://localhost:4200/api/v1/users/login',
             data: { email, password }
         })
-
         if (res.data.status === 'success') {
             showAlert('success', 'logged in successfully')
             window.setTimeout(() => location.assign('/'), 1500)
         }
-        console.log(res)
+        window.localStorage.setItem(res.token)
     }
     catch (err) { 
         showAlert('error', err.response.data.message) }
@@ -42,9 +41,8 @@ let logout = async () => {
     try {
         let res = await axios({
             method: 'GET',
-            url: 'http://127.0.0.1:4200/api/v1/users/logout',
+            url: 'http://localhost:4200/api/v1/users/logout',
         })
-        if (res.data.status = 'success') location.reload(true)
     } catch (e) {
         showAlert('error', 'error logging out, try again!')
     }

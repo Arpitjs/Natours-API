@@ -10,13 +10,9 @@ let signToken = id => jwt.sign({ id }, process.env.JWT_SECRET)
 
 let sendToken = (user, statusCode, res) => {
     let token = signToken(user._id)
-    let cookieOptions = {
-            expires: new Date(
-                Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 21 * 60 * 60 * 1000),
-                httpOnly: true
-    }
+    
     if(process.env.NODE_ENV === 'production') cookieOptions.secure = true
-    res.cookie('jwt', token, cookieOptions)
+    res.cookie('jwt', token)
     user.password = undefined
     res.status(statusCode).json({
         status: 'success',
@@ -48,12 +44,15 @@ exports.login = catchAsync(async (req, res, next) => {
     sendToken(user, 200, res)
 })
 
-exports.logout = (req, res) => {
-    res.cookie('jwt', 'loggedoutmate', {
-        expires: new Date(Date.now() + 10 * 1000), //10 seconds
-        httpOnly: true
-    })
-    res.status(200).json( { status: 'success' } )
+exports.logout = async (req, res) => {
+    try {
+       await res.clearCookie('jwt')
+       res.redirect('/')
+
+    } catch (e) {
+        console.log('couldnt clear it')
+    }
+    res.status(200).json()
 }
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -163,6 +162,6 @@ exports.isLoggedIn = async(req, res, next) => {
 } catch (e) {
     return next()
 }
-}
-next()
-}
+  }
+return next()
+  }

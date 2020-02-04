@@ -16,6 +16,7 @@ let tourRouter = require('./Routes/tourRoutes')
 let userRouter = require('./Routes/userRoutes')
 let reviewRouter = require('./Routes/reviewRoute')
 let viewRoutes = require('./Routes/viewRoutes')
+let bookingRoutes = require('./Routes/bookingRoutes')
 
 app.use(cors())
 
@@ -70,6 +71,7 @@ app.use('/', viewRoutes)
 app.use('/api/v1/tours', tourRouter)
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/reviews', reviewRouter)
+app.use('/api/v1/bookings', bookingRoutes)
 
 app.all('*', (req, res, next) => {
     next(new AppError(`cannot find ${req.originalUrl} on this server.`, 404))

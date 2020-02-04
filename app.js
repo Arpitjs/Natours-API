@@ -9,7 +9,7 @@ let  xss = require('xss-clean')
 let hpp = require('hpp')
 let cors = require('cors')
 let cookieParser = require('cookie-parser')
-
+let compression = require('compression')
 let AppError = require('./utils/appError')
 let globalErrorHandler = require('./controllers/errorController')
 let tourRouter = require('./Routes/tourRoutes')
@@ -60,9 +60,10 @@ app.use(hpp({
 'difficulty', 'price', 'maxGroupSize']
 }))
 
+app.use(compression())
+
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString()
-    console.log(req.cookies)
     next()
 })
 

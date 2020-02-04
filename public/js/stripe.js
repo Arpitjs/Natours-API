@@ -4,7 +4,7 @@ let bookTour = async tourId => {
     // 1 get the session from backend
     try {
         let session = await axios({
-            url: `http://localhost:4200/api/v1/bookings/checkout-session/${tourId}`
+            url: `/api/v1/bookings/checkout-session/${tourId}`
         })
 
         console.log(session)

@@ -24,7 +24,6 @@ let sendToken = (user, statusCode, res) => {
 exports.signUp = catchAsync(async (req, res, next) => {
     let newUser = await User.create(req.body)
     let url = `${req.protocol}://${req.get('host')}/me`
-    console.log(url)
     await new Email(newUser, url).sendWelcome()
     sendToken(newUser, 201, res)
 })

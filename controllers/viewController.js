@@ -41,6 +41,7 @@ exports.getMyTours = catchAsync(async (req, res, next) => {
     console.log(bookings)
     // 2 get the tour ids using the bookings array where we populated tours
     let tourIDs = bookings.map(booking => booking.tour)
+    // The $in operator selects the documents where the value of a field equals any value in the specified array.
     let tours = await Tour.find({_id: {$in: tourIDs }})
 
     res.status(200).render('overview', {

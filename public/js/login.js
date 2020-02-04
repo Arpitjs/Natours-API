@@ -16,7 +16,7 @@ let login = async (email, password) => {
     try {
         let res = await axios({
             method: 'POST',
-            url: 'http://localhost:4200/api/v1/users/login',
+            url: '/api/v1/users/login',
             data: { email, password }
         })
         if (res.data.status === 'success') {
@@ -41,7 +41,7 @@ let logout = async () => {
     try {
         let res = await axios({
             method: 'GET',
-            url: 'http://localhost:4200/api/v1/users/logout',
+            url: '/api/v1/users/logout',
         })
     } catch (e) {
         showAlert('error', 'error logging out, try again!')

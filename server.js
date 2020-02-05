@@ -10,7 +10,7 @@ let dotenv = require('dotenv')
 dotenv.config({ path: './config.env' })
 let app = require('./app')
 
-let DB = process.env.DATABASE_LOCAL
+let DB = process.env.DATABASE
 mongoose.connect(DB, {
     useNewUrlParser: true,
     useCreateIndex: true,
@@ -18,6 +18,7 @@ mongoose.connect(DB, {
     useUnifiedTopology: true
 })
     .then(() => console.log('database connected.'))
+    .catch(() => console.log('error in connection'))
 
 let port = process.env.PORT
 let server = app.listen(port, () => console.log('app running @ ' + port))

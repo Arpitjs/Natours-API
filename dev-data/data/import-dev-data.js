@@ -6,7 +6,7 @@ let Tour = require('../../models/tourModel')
 let User = require('../../models/userModel')
 let Review = require('../../models/reviewModel')
 
-let DB = process.env.DATABASE_LOCAL
+let DB = process.env.DATABASE
 mongoose.connect(DB, {
     useNewUrlParser: true,
     useCreateIndex: true,

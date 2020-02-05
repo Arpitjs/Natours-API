@@ -1,5 +1,5 @@
 let catchAsync = require('../utils/catchAsync')
-let AppError = require('../utils/AppError')
+let AppError = require('../utils/appError')
 let APIFeatures = require('../utils/apiFeatures')
 
 exports.deleteOne = Model =>

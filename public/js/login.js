@@ -23,7 +23,6 @@ let login = async (email, password) => {
             showAlert('success', 'logged in successfully')
             window.setTimeout(() => location.assign('/'), 1500)
         }
-        window.localStorage.setItem(res.token)
     }
     catch (err) { 
         showAlert('error', err.response.data.message) }
@@ -39,10 +38,11 @@ if (document.querySelector('.form--login'))
 
 let logout = async () => {
     try {
-        let res = await axios({
+        await axios({
             method: 'GET',
             url: '/api/v1/users/logout',
         })
+        window.setTimeout(() => location.assign('/'), 0)
     } catch (e) {
         showAlert('error', 'error logging out, try again!')
     }

@@ -46,8 +46,6 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.logout = async (req, res) => {
     try {
        await res.clearCookie('jwt')
-       res.redirect('/')
-
     } catch (e) {
         console.log('couldnt clear it')
     }

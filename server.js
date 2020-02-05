@@ -10,7 +10,7 @@ let dotenv = require('dotenv')
 dotenv.config({ path: './config.env' })
 let app = require('./app')
 
-let DB = process.env.DATABASE
+let DB = process.env.DATABASE_LOCAL
 mongoose.connect(DB, {
     useNewUrlParser: true,
     useCreateIndex: true,
